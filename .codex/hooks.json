@@ -1,0 +1,25 @@
+{
+  "description": "Capture only user prompts and final assistant responses for the 8x assignment.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .codex/hooks/capture_turn.py prompt"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .codex/hooks/capture_turn.py response"
+          }
+        ]
+      }
+    ]
+  }
+}
