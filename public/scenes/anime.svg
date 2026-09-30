@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" fill="none">
+  <defs>
+    <linearGradient id="animeSky" x1="600" y1="0" x2="600" y2="720" gradientUnits="userSpaceOnUse"><stop stop-color="#302b68"/><stop offset=".52" stop-color="#f08092"/><stop offset="1" stop-color="#f9bc7b"/></linearGradient>
+    <linearGradient id="jacket" x1="500" y1="340" x2="748" y2="680" gradientUnits="userSpaceOnUse"><stop stop-color="#42c9d8"/><stop offset="1" stop-color="#33478e"/></linearGradient>
+  </defs>
+  <path fill="url(#animeSky)" d="M0 0h1200v720H0z"/><circle cx="857" cy="260" r="115" fill="#ffe2b0" opacity=".84"/>
+  <path d="M0 421 193 332l140 73 191-165 187 171 171-91 143 91 175-142v451H0V421Z" fill="#5b527f" opacity=".74"/>
+  <path d="m0 513 207-91 122 76 177-174 184 165 130-102 144 105 236-153v381H0V513Z" fill="#323a69" opacity=".86"/>
+  <path d="M0 610c234-48 378-45 578-9 233 42 381 44 622-6v125H0V610Z" fill="#1c2855"/>
+  <path d="M241 199 70 143m370 85L196 91m505 182L390 41m573 226L650 52m374 266L934 138" stroke="#ffe4bb" stroke-opacity=".38" stroke-width="7" stroke-linecap="round"/>
+  <path d="M425 720c25-137 58-241 112-290 27-24 63-35 102-34 51 1 92 21 126 63 42 51 75 143 99 261H425Z" fill="url(#jacket)"/>
+  <path d="M520 473c-33-46-47-104-44-165 5-89 49-142 123-142 68 0 117 49 122 135 4 76-29 153-78 184-42 26-92 18-123-12Z" fill="#f0bd9e"/>
+  <path d="M477 326c-18-93 2-183 65-216 57-30 143-10 173 47 20 39 20 94 10 147-21-18-40-47-48-76-44 32-110 52-195 48l-5 50Z" fill="#24284d"/>
+  <path d="m498 257-76-31m85 67-89 4m94 27-73 30m290-100 75-44m-81 81 94-8m-101 39 81 29" stroke="#ffd8c5" stroke-width="6" stroke-linecap="round"/>
+  <path d="M568 325c14-7 30-8 44-2m69-3c15-6 30-5 43 2" stroke="#352b4d" stroke-width="6" stroke-linecap="round"/><path d="M618 382c16 8 32 7 47-2" stroke="#b6546f" stroke-width="5" stroke-linecap="round"/>
+</svg>
