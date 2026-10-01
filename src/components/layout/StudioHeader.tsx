@@ -8,11 +8,12 @@ interface StudioHeaderProps {
   view: StudioView;
   modelId: string;
   historyCount: number;
+  credits: number;
   onNavigate: (view: StudioView) => void;
   onChooseModel: () => void;
 }
 
-export default function StudioHeader({ view, modelId, historyCount, onNavigate, onChooseModel }: StudioHeaderProps) {
+export default function StudioHeader({ view, modelId, historyCount, credits, onNavigate, onChooseModel }: StudioHeaderProps) {
   const selectedModel = models.find((model) => model.id === modelId) ?? models[0];
 
   return (
@@ -36,8 +37,8 @@ export default function StudioHeader({ view, modelId, historyCount, onNavigate, 
           <span>{selectedModel.name}</span>
           <ChevronDown size={13} />
         </button>
-        <div className="credits-indicator" aria-label="18 credits available">
-          <Sparkles size={14} /> <span>1,240</span><span className="credits-label">credits</span>
+        <div className="credits-indicator" aria-label={`${credits.toLocaleString()} credits available`}>
+          <Sparkles size={14} /> <span>{credits.toLocaleString()}</span><span className="credits-label">credits</span>
         </div>
         <div className="avatar" aria-label="FramePilot creator profile">FP</div>
         <button className="mobile-library" onClick={() => onNavigate(view === "library" ? "create" : "library")} aria-label="Open library">

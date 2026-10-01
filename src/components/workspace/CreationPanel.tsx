@@ -20,10 +20,12 @@ interface CreationPanelProps {
   canGenerate: boolean;
   isGenerating: boolean;
   creditCost: number;
+  creditBalance: number;
+  creditInsufficient: boolean;
   onGenerate: () => void;
 }
 
-export default function CreationPanel({ settings, reference, onSettingsChange, onReferenceChange, onReferenceRemove, onModelOpen, onEnhance, enhanced, canGenerate, isGenerating, creditCost, onGenerate }: CreationPanelProps) {
+export default function CreationPanel({ settings, reference, onSettingsChange, onReferenceChange, onReferenceRemove, onModelOpen, onEnhance, enhanced, canGenerate, isGenerating, creditCost, creditBalance, creditInsufficient, onGenerate }: CreationPanelProps) {
   return (
     <aside className="creation-panel">
       <div className="creation-scroll">
@@ -59,8 +61,8 @@ export default function CreationPanel({ settings, reference, onSettingsChange, o
         </motion.button>
         <div className="generate-meta">
           <span>{isGenerating ? "Mock render in progress" : `Estimated cost · ${creditCost} credits`}</span>
-          {!canGenerate && !isGenerating && <span className="generate-requirement">Add a reference image and prompt</span>}
-          {canGenerate && !isGenerating && <span className="credit-balance">1,240 available</span>}
+          {!canGenerate && !isGenerating && <span className="generate-requirement">{creditInsufficient ? "Insufficient demo credits" : "Add a reference image and prompt"}</span>}
+          {canGenerate && !isGenerating && <span className="credit-balance">{creditBalance.toLocaleString()} available</span>}
         </div>
       </div>
     </aside>

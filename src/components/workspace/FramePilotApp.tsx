@@ -27,11 +27,14 @@ const initialSettings: ProjectSettings = {
   cameraMovement: "Slow push",
   seed: "483921",
 };
+const INITIAL_CREDITS = 1240;
+const CREDITS_KEY = "framepilot.credits.v1";
 
 export default function FramePilotApp() {
   const [settings, setSettings] = useState<ProjectSettings>(initialSettings);
   const [reference, setReference] = useState<ReferenceAsset | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [credits, setCredits] = useState(INITIAL_CREDITS);
   const [isHistoryReady, setIsHistoryReady] = useState(false);
   const [activeResult, setActiveResult] = useState<HistoryItem | null>(null);
   const [renderPrompt, setRenderPrompt] = useState("");
@@ -41,6 +44,7 @@ export default function FramePilotApp() {
   const [toast, setToast] = useState("");
   const generation = useGenerationMachine();
   const generationSnapshot = useRef<ProjectSettings | null>(null);
+  const generationCost = useRef(0);
   const handledGeneration = useRef(0);
   const toastTimer = useRef<number | null>(null);
   const latestReference = useRef<ReferenceAsset | null>(null);
@@ -49,6 +53,13 @@ export default function FramePilotApp() {
     // Browser history is hydrated only after the server-rendered shell mounts.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHistory(readHistory());
+    try {
+      const savedCredits = window.localStorage.getItem(CREDITS_KEY);
+      if (savedCredits !== null) {
+        const storedCredits = Number(savedCredits);
+        if (Number.isFinite(storedCredits) && storedCredits >= 0) setCredits(storedCredits);
+      }
+    } catch { /* Keep the in-memory demo balance when browser storage is unavailable. */ }
     setIsHistoryReady(true);
   }, []);
 
@@ -68,8 +79,8 @@ export default function FramePilotApp() {
   }, []);
 
   const isGenerating = ["preparing", "planning", "rendering", "finalizing"].includes(generation.state.status);
-  const canGenerate = settings.prompt.trim().length > 0 && Boolean(reference) && isHistoryReady;
   const creditCost = useMemo(() => 18 + (settings.duration === 10 ? 14 : 0) + (settings.quality === "1080p" ? 5 : 0) + (settings.bitrate === "High" ? 3 : 0), [settings.duration, settings.quality, settings.bitrate]);
+  const canGenerate = settings.prompt.trim().length > 0 && Boolean(reference) && isHistoryReady && credits >= creditCost;
 
   const updateSettings = useCallback((patch: Partial<ProjectSettings>) => {
     setSettings((current) => ({ ...current, ...patch }));
@@ -89,14 +100,19 @@ export default function FramePilotApp() {
       notify(!reference ? "Add a reference image to start your scene." : "Add a prompt to start your scene.");
       return;
     }
+    if (credits < creditCost) {
+      notify("There are not enough demo credits for these settings.");
+      return;
+    }
     const nextId = generation.state.generationId + 1;
     generationSnapshot.current = { ...settings };
+    generationCost.current = creditCost;
     setRenderPrompt(settings.prompt);
     handledGeneration.current = 0;
     setActiveResult(null);
     setView("create");
     generation.start(nextId);
-  }, [generation, notify, reference, settings]);
+  }, [creditCost, credits, generation, notify, reference, settings]);
 
   useEffect(() => {
     if (generation.state.status !== "complete" || generation.state.generationId === handledGeneration.current) return;
@@ -116,6 +132,11 @@ export default function FramePilotApp() {
     };
     setActiveResult(created);
     addHistory(created);
+    setCredits((current) => {
+      const next = Math.max(0, current - generationCost.current);
+      try { window.localStorage.setItem(CREDITS_KEY, String(next)); } catch { /* Demo remains usable when browser storage is unavailable. */ }
+      return next;
+    });
     notify("Scene rendered and added to your library.");
   }, [addHistory, generation, generation.state.generationId, generation.state.status, notify]);
 
@@ -214,9 +235,9 @@ export default function FramePilotApp() {
 
   return (
     <main className="framepilot-app">
-      <StudioHeader view={view} modelId={settings.modelId} historyCount={history.length} onNavigate={openView} onChooseModel={() => setModelPickerOpen(true)} />
+      <StudioHeader view={view} modelId={settings.modelId} historyCount={history.length} credits={credits} onNavigate={openView} onChooseModel={() => setModelPickerOpen(true)} />
       <div className="workspace-shell">
-        <CreationPanel settings={settings} reference={reference} onSettingsChange={updateSettings} onReferenceChange={updateReference} onReferenceRemove={removeReference} onModelOpen={() => setModelPickerOpen(true)} onEnhance={handleEnhance} enhanced={enhanced} canGenerate={canGenerate} isGenerating={isGenerating} creditCost={creditCost} onGenerate={startGeneration} />
+        <CreationPanel settings={settings} reference={reference} onSettingsChange={updateSettings} onReferenceChange={updateReference} onReferenceRemove={removeReference} onModelOpen={() => setModelPickerOpen(true)} onEnhance={handleEnhance} enhanced={enhanced} canGenerate={canGenerate} isGenerating={isGenerating} creditCost={creditCost} creditBalance={credits} creditInsufficient={settings.prompt.trim().length > 0 && Boolean(reference) && credits < creditCost} onGenerate={startGeneration} />
         <div className="right-stage">
           {view === "templates" ? <TemplateGallery selectedId={settings.presetId} onChoose={handlePreset} /> : <PreviewPanel key={currentResult?.id ?? "preview"} status={generation.state.status} progress={generation.state.progress} prompt={isGenerating ? renderPrompt : settings.prompt} scene={settings.scene} result={currentResult} settings={settings} saved={Boolean(currentResult?.saved)} onCancel={() => { generation.cancel(); generationSnapshot.current = null; setRenderPrompt(""); notify("Render cancelled."); }} onGenerate={startGeneration} onUsePrompt={applyPromptFromHistory} onDuplicate={duplicateSettings} onSave={saveToLibrary} onDownload={downloadPreview} onUsePreset={handlePreset} />}
           {generation.state.status === "error" && <div className="error-banner" role="alert"><span>{generation.state.error ?? "The render failed."}</span><button onClick={startGeneration}>Try again</button></div>}
