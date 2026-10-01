@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FramePilot
 
-## Getting Started
+**A focused reference-to-motion creative studio inspired by modern AI video workflows.**
 
-First, run the development server:
+## Overview
+
+FramePilot is a focused creative studio for turning a reference image and a motion prompt into a cinematic animated scene. Shape a visual direction with a prompt, choose a model and output settings, then preview a locally simulated result.
+
+The interface brings the creation flow, templates, and project history together in one workspace. Results are self-contained demo renders; FramePilot does not perform real AI inference.
+
+## Product Decisions
+
+- A single, focused creation workflow keeps the reference, prompt, settings, and preview close together.
+- A small set of model choices keeps setup approachable.
+- Compact output controls cover the options most useful to a short scene.
+- Local prompt enhancement adds composition, camera, lighting, and atmosphere cues while keeping the prompt editable.
+- Staged progress makes the simulated generation process clear.
+- A library and history make it easy to revisit results and iterate on their settings.
+
+## Core Features
+
+- Upload a local reference image and use it as the visual base for the animated preview.
+- Write and edit a motion prompt in the prompt composer.
+- Enhance a prompt locally with cinematic direction.
+- Choose from three demo model profiles.
+- Set duration, aspect ratio, quality, and bitrate.
+- Adjust motion intensity, camera movement, and seed in advanced controls.
+- Follow staged generation feedback from preparation through finalization.
+- Play, pause, and scrub an animated result preview.
+- Save and restore results in a browser-local library.
+- Start from scene templates with prepared prompts and settings.
+- Track simulated credits for local demo generations.
+
+## How It Works
+
+**Reference -> Prompt -> Settings -> Generate -> Preview -> Iterate**
+
+## Technical Stack
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Lucide React
+- Framer Motion
+
+## Architecture
+
+The interface is built from focused components under `src/components`, with the main client-side workspace in `FramePilotApp`. A client-side generation state machine drives the staged progress flow and completion state. History is stored in `localStorage`, and a deterministic local rendering simulation produces the animated preview.
+
+## Demo / Product Scope
+
+FramePilot is a frontend product prototype. It uses a local deterministic rendering simulation instead of an external AI video-generation API. This keeps the demo self-contained and avoids API keys or backend infrastructure.
+
+## Running Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Production Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run build
+```
 
-## Learn More
+## Live Demo
 
-To learn more about Next.js, take a look at the following resources:
+[https://framepilot-theta.vercel.app/](https://framepilot-theta.vercel.app/)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Repository
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+[https://github.com/ak-jaat-007/framepilot](https://github.com/ak-jaat-007/framepilot)
 
-## Deploy on Vercel
+## Agent Capture
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The repository includes the required `.agent-logs/` capture records, `.codex/` hook configuration, and `CAPTURE-TEST.md` used for the assignment workflow.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+
+Generated media in the demo is simulated locally. No external API keys are required.
+
+## Author
+
+Aman Kaliramna
