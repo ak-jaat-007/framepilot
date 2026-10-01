@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useReducer } from "react";
-import type { GenerationStatus } from "@/types/studio";
+import type { GenerationStatus, ModelId } from "@/types/studio";
 
 export interface GenerationState {
   status: GenerationStatus;
   progress: number;
   startedAt: number | null;
   generationId: number;
+  modelId: ModelId | null;
   error: string | null;
 }
 
 type Action =
-  | { type: "start"; id: number; startedAt: number }
+  | { type: "start"; id: number; modelId: ModelId; startedAt: number }
   | { type: "tick"; status: GenerationStatus; progress: number }
   | { type: "complete" }
   | { type: "cancel" }
@@ -23,13 +24,14 @@ const initialState: GenerationState = {
   progress: 0,
   startedAt: null,
   generationId: 0,
+  modelId: null,
   error: null,
 };
 
 function reducer(state: GenerationState, action: Action): GenerationState {
   switch (action.type) {
     case "start":
-      return { status: "preparing", progress: 1, startedAt: action.startedAt, generationId: action.id, error: null };
+      return { status: "preparing", progress: 1, startedAt: action.startedAt, generationId: action.id, modelId: action.modelId, error: null };
     case "tick":
       return { ...state, status: action.status, progress: action.progress };
     case "complete":
@@ -70,7 +72,7 @@ export function useGenerationMachine() {
 
   return {
     state,
-    start: (id: number) => dispatch({ type: "start", id, startedAt: Date.now() }),
+    start: (id: number, modelId: ModelId) => dispatch({ type: "start", id, modelId, startedAt: Date.now() }),
     cancel: () => dispatch({ type: "cancel" }),
     fail: (message: string) => dispatch({ type: "error", message }),
   };

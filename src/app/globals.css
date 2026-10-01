@@ -299,11 +299,9 @@ button:disabled { cursor: not-allowed; }
 .result-caption p { display: -webkit-box; margin: 6px 0 0; overflow: hidden; color: #f0efe9; font-size: 11px; line-height: 1.5; text-overflow: ellipsis; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .result-top-badge { position: absolute; z-index: 2; top: 14px; left: 15px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid rgba(255,255,255,.12); border-radius: 5px; color: #d6d9d2; background: rgba(9,12,17,.36); backdrop-filter: blur(10px); font-size: 7px; letter-spacing: .8px; }
 .result-top-badge > span { width: 5px; height: 5px; border-radius: 50%; background: #d5a977; }
-.fullscreen-button, .volume-button { position: absolute; z-index: 3; display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid rgba(255,255,255,.14); border-radius: 7px; color: #eceee8; background: rgba(8,11,16,.38); backdrop-filter: blur(10px); cursor: pointer; transition: background .18s; }
-.fullscreen-button:hover, .volume-button:hover { background: rgba(8,11,16,.75); }
+.fullscreen-button { position: absolute; z-index: 3; display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid rgba(255,255,255,.14); border-radius: 7px; color: #eceee8; background: rgba(8,11,16,.38); backdrop-filter: blur(10px); cursor: pointer; transition: background .18s; }
+.fullscreen-button:hover { background: rgba(8,11,16,.75); }
 .fullscreen-button { top: 14px; right: 14px; }
-.volume-button { right: 14px; bottom: 16px; }
-.volume-button.is-muted { color: #9ca3a1; }
 .player-controls { display: flex; align-items: center; gap: 9px; height: 42px; padding: 0 10px; border: 1px solid rgba(255,255,255,.075); border-top: 0; border-radius: 0 0 8px 8px; background: #12161b; }
 .play-button { display: grid; width: 24px; height: 24px; flex: 0 0 auto; place-items: center; border: 0; border-radius: 50%; color: #13180e; background: var(--acid); cursor: pointer; }
 .play-button svg { margin-left: 1px; }

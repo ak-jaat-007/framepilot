@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
-import { ArrowDownToLine, Bookmark, Check, Expand, Pause, Play, RotateCcw, Volume2, VolumeX, WandSparkles, X } from "lucide-react";
-import { presets, relativeTime } from "@/lib/studio-data";
+import { ArrowDownToLine, Bookmark, Check, Expand, Pause, Play, RotateCcw, WandSparkles, X } from "lucide-react";
+import { getModelName, presets, relativeTime } from "@/lib/studio-data";
 import type { GenerationStatus, HistoryItem, ProjectSettings } from "@/types/studio";
 
 interface PreviewPanelProps {
@@ -47,7 +47,6 @@ function PrettyTime({ date }: { date: string }) {
 export default function PreviewPanel({ status, progress, prompt, scene, referenceImage, result, settings, saved, onCancel, onGenerate, onUsePrompt, onDuplicate, onSave, onDownload, onUsePreset }: PreviewPanelProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(true);
   const [playhead, setPlayhead] = useState(0);
   const isGenerating = ["preparing", "planning", "rendering", "finalizing"].includes(status);
   const isComplete = result && !isGenerating && status !== "error";
@@ -123,7 +122,7 @@ export default function PreviewPanel({ status, progress, prompt, scene, referenc
           </motion.div>
         ) : isComplete ? (
           <motion.div key={`result-${result.id}`} className="preview-content result-content" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <div className="result-heading"><div><span className="eyebrow">LOCAL MOCK GENERATION · {result.quality} · {result.duration} SEC</span><h2>Your scene is ready<span className="success-dot">.</span></h2><p><PrettyTime date={result.createdAt} /> <span className="meta-separator">·</span> {result.aspectRatio} <span className="meta-separator">·</span> {result.modelId === "cinematic" ? "FramePilot Cinematic" : result.modelId === "motion-pro" ? "Motion Pro" : "Realistic Studio"}</p></div><span className="complete-badge"><Check size={12} /> Complete</span></div>
+            <div className="result-heading"><div><span className="eyebrow">LOCAL MOCK GENERATION · {result.quality} · {result.duration} SEC</span><h2>Your scene is ready<span className="success-dot">.</span></h2><p><PrettyTime date={result.createdAt} /> <span className="meta-separator">·</span> {result.aspectRatio} <span className="meta-separator">·</span> {getModelName(result.modelId)}</p></div><span className="complete-badge"><Check size={12} /> Complete</span></div>
             <div className="result-frame" ref={frameRef}>
               <div className={`artwork artwork-${result.scene} result-artwork ${playing ? "is-playing" : ""} ${result.referenceImage ? "has-reference" : ""}`} style={{ backgroundImage: `url("${result.referenceImage ?? result.thumbnail}")`, transform: result.referenceImage ? undefined : cameraTransform }}>
                 {result.referenceImage && <Image className="reference-result-image" src={result.referenceImage} alt="" aria-hidden="true" draggable={false} fill sizes="100vw" unoptimized style={{ transform: cameraTransform }} />}
@@ -132,7 +131,6 @@ export default function PreviewPanel({ status, progress, prompt, scene, referenc
               <div className="result-top-badge"><span /> DEMO PREVIEW</div>
               <div className="result-caption"><span>FRAMEPILOT ORIGINAL</span><p>{result.prompt}</p></div>
               <button className="fullscreen-button" onClick={() => frameRef.current?.requestFullscreen?.()} aria-label="Expand preview" title="Expand preview"><Expand size={15} /></button>
-              <button className={`volume-button ${muted ? "is-muted" : ""}`} onClick={() => setMuted((value) => !value)} aria-label={muted ? "Unmute preview" : "Mute preview"} title={muted ? "Unmute" : "Mute"}>{muted ? <VolumeX size={15} /> : <Volume2 size={15} />}</button>
             </div>
             <div className="player-controls">
               <button className="play-button" onClick={togglePlay} aria-label={playing ? "Pause preview" : "Play preview"}>{playing ? <Pause size={13} fill="currentColor" /> : <Play size={14} fill="currentColor" />}</button>

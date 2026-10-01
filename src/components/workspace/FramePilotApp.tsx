@@ -115,7 +115,7 @@ export default function FramePilotApp() {
     handledGeneration.current = 0;
     setActiveResult(null);
     setView("create");
-    generation.start(nextId);
+    generation.start(nextId, settings.modelId);
   }, [creditCost, credits, generation, notify, reference, settings]);
 
   useEffect(() => {
@@ -128,6 +128,7 @@ export default function FramePilotApp() {
     handledGeneration.current = generation.state.generationId;
     const created: HistoryItem = {
       ...snapshot,
+      modelId: generation.state.modelId ?? snapshot.modelId,
       id: `scene-${Date.now().toString(36)}`,
       createdAt: new Date().toISOString(),
       status: "complete",
@@ -143,7 +144,7 @@ export default function FramePilotApp() {
       return next;
     });
     notify("Scene rendered and added to your library.");
-  }, [addHistory, generation, generation.state.generationId, generation.state.status, notify]);
+  }, [addHistory, generation, generation.state.generationId, generation.state.modelId, generation.state.status, notify]);
 
   const handlePreset = useCallback((id: string) => {
     const preset = presets.find((entry) => entry.id === id);
