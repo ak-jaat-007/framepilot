@@ -12,11 +12,35 @@ interface ReferenceUploaderProps {
 
 export default function ReferenceUploader({ reference, onChange, onRemove }: ReferenceUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const uploadRequest = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState("");
 
-  const acceptFile = (file?: File) => {
+  const createPersistedPreview = (sourceUrl: string) => new Promise<string>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const maxDimension = 720;
+      const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Image preview could not be prepared."));
+        return;
+      }
+      context.fillStyle = "#101418";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", 0.76));
+    };
+    image.onerror = () => reject(new Error("This image could not be read. Try another file."));
+    image.src = sourceUrl;
+  });
+
+  const acceptFile = async (file?: File) => {
     if (!file) return;
+    const requestId = ++uploadRequest.current;
     if (!file.type.startsWith("image/")) {
       setFileError("Choose an image file to use as your visual reference.");
       return;
@@ -27,7 +51,17 @@ export default function ReferenceUploader({ reference, onChange, onRemove }: Ref
     }
     setFileError("");
     const previewUrl = URL.createObjectURL(file);
-    onChange({ previewUrl, name: file.name, isObjectUrl: true });
+    try {
+      const persistedUrl = await createPersistedPreview(previewUrl);
+      if (requestId !== uploadRequest.current) {
+        URL.revokeObjectURL(previewUrl);
+        return;
+      }
+      onChange({ previewUrl, persistedUrl, name: file.name, isObjectUrl: true });
+    } catch (error) {
+      URL.revokeObjectURL(previewUrl);
+      if (requestId === uploadRequest.current) setFileError(error instanceof Error ? error.message : "This image could not be read. Try another file.");
+    }
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -55,7 +89,7 @@ export default function ReferenceUploader({ reference, onChange, onRemove }: Ref
           </div>
           <div className="reference-actions">
             <button className="icon-button small" onClick={() => inputRef.current?.click()} aria-label="Replace reference image" title="Replace image"><RefreshCw size={14} /></button>
-            <button className="icon-button small" onClick={onRemove} aria-label="Remove reference image" title="Remove image"><X size={14} /></button>
+            <button className="icon-button small" onClick={() => { uploadRequest.current += 1; onRemove(); }} aria-label="Remove reference image" title="Remove image"><X size={14} /></button>
           </div>
         </div>
       ) : (

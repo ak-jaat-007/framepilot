@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import { ArrowDownToLine, Bookmark, Check, Expand, Pause, Play, RotateCcw, Volume2, VolumeX, WandSparkles, X } from "lucide-react";
 import { presets, relativeTime } from "@/lib/studio-data";
 import type { GenerationStatus, HistoryItem, ProjectSettings } from "@/types/studio";
@@ -11,6 +12,7 @@ interface PreviewPanelProps {
   progress: number;
   prompt: string;
   scene: string;
+  referenceImage: string;
   result: HistoryItem | null;
   settings: ProjectSettings;
   saved: boolean;
@@ -42,7 +44,7 @@ function PrettyTime({ date }: { date: string }) {
   return <span>{relativeTime(date)}</span>;
 }
 
-export default function PreviewPanel({ status, progress, prompt, scene, result, settings, saved, onCancel, onGenerate, onUsePrompt, onDuplicate, onSave, onDownload, onUsePreset }: PreviewPanelProps) {
+export default function PreviewPanel({ status, progress, prompt, scene, referenceImage, result, settings, saved, onCancel, onGenerate, onUsePrompt, onDuplicate, onSave, onDownload, onUsePreset }: PreviewPanelProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -50,6 +52,22 @@ export default function PreviewPanel({ status, progress, prompt, scene, result, 
   const isGenerating = ["preparing", "planning", "rendering", "finalizing"].includes(status);
   const isComplete = result && !isGenerating && status !== "error";
   const stageDetail = progress >= 35 && progress < 64 ? "Synthesizing motion" : progress >= 64 && progress < 88 ? "Rendering frames" : stageLabels[status];
+  const playbackProgress = result ? playhead / result.duration : 0;
+  const motionAmount = (result?.motionIntensity ?? settings.motionIntensity) / 100;
+  const cameraTransform = (() => {
+    switch (result?.cameraMovement ?? settings.cameraMovement) {
+      case "Orbit":
+        return `translate3d(${Math.sin(playbackProgress * Math.PI * 2) * 2.4 * motionAmount}%, 0, 0) scale(${1 + 0.09 * motionAmount})`;
+      case "Tracking":
+        return `translate3d(${(-3 + playbackProgress * 6) * motionAmount}%, 0, 0) scale(${1 + 0.07 * motionAmount})`;
+      case "Handheld drift":
+        return `translate3d(${Math.sin(playbackProgress * Math.PI * 5) * 0.8 * motionAmount}%, ${Math.cos(playbackProgress * Math.PI * 4) * 0.5 * motionAmount}%, 0) scale(${1 + 0.055 * motionAmount})`;
+      case "Locked frame":
+        return `scale(${1 + 0.018 * motionAmount})`;
+      default:
+        return `translate3d(0, ${-2.2 * playbackProgress * motionAmount}%, 0) scale(${1 + 0.1 * playbackProgress * motionAmount})`;
+    }
+  })();
 
   useEffect(() => {
     if (!playing || !result) return;
@@ -82,7 +100,7 @@ export default function PreviewPanel({ status, progress, prompt, scene, result, 
           <motion.div key="generation" className="preview-content generating-content" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             <div className="generation-heading"><div><span className="eyebrow">A LITTLE PATIENCE, A LOT OF PICTURE</span><h2>Building your scene<span className="ellipsis">…</span></h2><p>FramePilot is shaping a local demo render from your setup.</p></div><button className="quiet-button cancel-button" onClick={onCancel}><X size={14} /> Cancel render</button></div>
             <div className="render-frame" ref={frameRef}>
-              <div className={`artwork artwork-${scene || "landscape"} render-artwork`} style={{ backgroundImage: `url("/scenes/${scene || "landscape"}.svg")` }} />
+              <div className={`artwork artwork-${scene || "landscape"} render-artwork`} style={{ backgroundImage: `url("${referenceImage || `/scenes/${scene || "landscape"}.svg`}")` }} />
               <div className="render-vignette" />
               <div className="render-scanline" style={{ top: `${12 + progress * 0.74}%` }} />
               <div className="render-label"><span className="render-pulse" /> Live render preview</div>
@@ -107,7 +125,9 @@ export default function PreviewPanel({ status, progress, prompt, scene, result, 
           <motion.div key={`result-${result.id}`} className="preview-content result-content" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
             <div className="result-heading"><div><span className="eyebrow">LOCAL MOCK GENERATION · {result.quality} · {result.duration} SEC</span><h2>Your scene is ready<span className="success-dot">.</span></h2><p><PrettyTime date={result.createdAt} /> <span className="meta-separator">·</span> {result.aspectRatio} <span className="meta-separator">·</span> {result.modelId === "cinematic" ? "FramePilot Cinematic" : result.modelId === "motion-pro" ? "Motion Pro" : "Realistic Studio"}</p></div><span className="complete-badge"><Check size={12} /> Complete</span></div>
             <div className="result-frame" ref={frameRef}>
-              <div className={`artwork artwork-${result.scene} result-artwork ${playing ? "is-playing" : ""}`} style={{ backgroundImage: `url("${result.thumbnail}")` }} />
+              <div className={`artwork artwork-${result.scene} result-artwork ${playing ? "is-playing" : ""} ${result.referenceImage ? "has-reference" : ""}`} style={{ backgroundImage: `url("${result.referenceImage ?? result.thumbnail}")`, transform: result.referenceImage ? undefined : cameraTransform }}>
+                {result.referenceImage && <Image className="reference-result-image" src={result.referenceImage} alt="" aria-hidden="true" draggable={false} fill sizes="100vw" unoptimized style={{ transform: cameraTransform }} />}
+              </div>
               <div className="result-vignette" />
               <div className="result-top-badge"><span /> DEMO PREVIEW</div>
               <div className="result-caption"><span>FRAMEPILOT ORIGINAL</span><p>{result.prompt}</p></div>

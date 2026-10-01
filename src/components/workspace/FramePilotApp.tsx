@@ -38,12 +38,14 @@ export default function FramePilotApp() {
   const [isHistoryReady, setIsHistoryReady] = useState(false);
   const [activeResult, setActiveResult] = useState<HistoryItem | null>(null);
   const [renderPrompt, setRenderPrompt] = useState("");
+  const [renderReference, setRenderReference] = useState("");
   const [view, setView] = useState<StudioView>("create");
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
   const [enhanced, setEnhanced] = useState(false);
   const [toast, setToast] = useState("");
   const generation = useGenerationMachine();
   const generationSnapshot = useRef<ProjectSettings | null>(null);
+  const generationReference = useRef<ReferenceAsset | null>(null);
   const generationCost = useRef(0);
   const handledGeneration = useRef(0);
   const toastTimer = useRef<number | null>(null);
@@ -106,8 +108,10 @@ export default function FramePilotApp() {
     }
     const nextId = generation.state.generationId + 1;
     generationSnapshot.current = { ...settings };
+    generationReference.current = reference;
     generationCost.current = creditCost;
     setRenderPrompt(settings.prompt);
+    setRenderReference(reference.persistedUrl ?? reference.previewUrl);
     handledGeneration.current = 0;
     setActiveResult(null);
     setView("create");
@@ -128,6 +132,7 @@ export default function FramePilotApp() {
       createdAt: new Date().toISOString(),
       status: "complete",
       thumbnail: `/scenes/${snapshot.scene || "landscape"}.svg`,
+      referenceImage: generationReference.current?.persistedUrl,
       saved: false,
     };
     setActiveResult(created);
@@ -198,7 +203,8 @@ export default function FramePilotApp() {
 
   const duplicateSettings = useCallback((item: HistoryItem) => {
     setSettings({ prompt: item.prompt, modelId: item.modelId, duration: item.duration, aspectRatio: item.aspectRatio, quality: item.quality, bitrate: item.bitrate, scene: item.scene, presetId: item.presetId, motionIntensity: item.motionIntensity, cameraMovement: item.cameraMovement, seed: item.seed });
-    setReference({ previewUrl: item.thumbnail, name: "Saved scene reference", isObjectUrl: false });
+    const restoredReference = item.referenceImage ?? item.thumbnail;
+    setReference({ previewUrl: restoredReference, persistedUrl: item.referenceImage, name: "Saved scene reference", isObjectUrl: false });
     setActiveResult(item);
     setView("create");
     notify("Setup duplicated. Adjust anything and generate again.");
@@ -223,8 +229,8 @@ export default function FramePilotApp() {
 
   const downloadPreview = useCallback((item: HistoryItem) => {
     const anchor = document.createElement("a");
-    anchor.href = item.thumbnail;
-    anchor.download = `framepilot-${item.scene}-preview.svg`;
+    anchor.href = item.referenceImage ?? item.thumbnail;
+    anchor.download = `framepilot-${item.scene}-preview.${item.referenceImage ? "jpg" : "svg"}`;
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -239,7 +245,7 @@ export default function FramePilotApp() {
       <div className="workspace-shell">
         <CreationPanel settings={settings} reference={reference} onSettingsChange={updateSettings} onReferenceChange={updateReference} onReferenceRemove={removeReference} onModelOpen={() => setModelPickerOpen(true)} onEnhance={handleEnhance} enhanced={enhanced} canGenerate={canGenerate} isGenerating={isGenerating} creditCost={creditCost} creditBalance={credits} creditInsufficient={settings.prompt.trim().length > 0 && Boolean(reference) && credits < creditCost} onGenerate={startGeneration} />
         <div className="right-stage">
-          {view === "templates" ? <TemplateGallery selectedId={settings.presetId} onChoose={handlePreset} /> : <PreviewPanel key={currentResult?.id ?? "preview"} status={generation.state.status} progress={generation.state.progress} prompt={isGenerating ? renderPrompt : settings.prompt} scene={settings.scene} result={currentResult} settings={settings} saved={Boolean(currentResult?.saved)} onCancel={() => { generation.cancel(); generationSnapshot.current = null; setRenderPrompt(""); notify("Render cancelled."); }} onGenerate={startGeneration} onUsePrompt={applyPromptFromHistory} onDuplicate={duplicateSettings} onSave={saveToLibrary} onDownload={downloadPreview} onUsePreset={handlePreset} />}
+          {view === "templates" ? <TemplateGallery selectedId={settings.presetId} onChoose={handlePreset} /> : <PreviewPanel key={currentResult?.id ?? "preview"} status={generation.state.status} progress={generation.state.progress} prompt={isGenerating ? renderPrompt : settings.prompt} scene={settings.scene} referenceImage={isGenerating ? renderReference : reference?.persistedUrl ?? reference?.previewUrl ?? ""} result={currentResult} settings={settings} saved={Boolean(currentResult?.saved)} onCancel={() => { generation.cancel(); generationSnapshot.current = null; setRenderPrompt(""); setRenderReference(""); notify("Render cancelled."); }} onGenerate={startGeneration} onUsePrompt={applyPromptFromHistory} onDuplicate={duplicateSettings} onSave={saveToLibrary} onDownload={downloadPreview} onUsePreset={handlePreset} />}
           {generation.state.status === "error" && <div className="error-banner" role="alert"><span>{generation.state.error ?? "The render failed."}</span><button onClick={startGeneration}>Try again</button></div>}
         </div>
       </div>

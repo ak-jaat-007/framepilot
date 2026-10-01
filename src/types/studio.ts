@@ -44,11 +44,13 @@ export interface HistoryItem extends ProjectSettings {
   createdAt: string;
   status: "complete";
   thumbnail: string;
+  referenceImage?: string;
   saved: boolean;
 }
 
 export interface ReferenceAsset {
   previewUrl: string;
+  persistedUrl?: string;
   name: string;
   isObjectUrl: boolean;
 }
